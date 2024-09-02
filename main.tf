@@ -39,6 +39,11 @@ resource "aws_lambda_function" "rule_group_maintainer" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "lambda_logs" {
+  name              = "/aws/lambda/${var.lambda_name}"
+  retention_in_days = var.lambda_log_retention_in_days
+}
+
 # Cloudwatch
 data "aws_cloudwatch_log_group" "log_group" {
   name = var.log_group_name

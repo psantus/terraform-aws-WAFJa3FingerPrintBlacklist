@@ -14,6 +14,12 @@ variable "lambda_name" {
   default     = "ja3-fingerprints-blocklist-maintainer"
 }
 
+variable "lambda_log_retention_in_days" {
+  type        = number
+  description = "The number of days to retain the Lambda log"
+  default     = 30
+}
+
 variable "rule_group_name" {
   type        = string
   description = "The name of the WAF rule group"

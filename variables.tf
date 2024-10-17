@@ -7,8 +7,8 @@ variable "log_group_name" {
   type        = string
   description = "The LogGroup name you want to extract logs from"
   validation { # Starts with /aws-waf-logs-
-    condition     = can(regex("^/aws-waf-logs-", var.log_group_name))
-    error_message = "The log_group_name must start with \"/aws-waf-logs-\" since we consume WAF Logs."
+    condition     = can(regex("^aws-waf-logs-", var.log_group_name))
+    error_message = "The log_group_name must start with \"aws-waf-logs-\" since we consume WAF Logs."
   }
 }
 

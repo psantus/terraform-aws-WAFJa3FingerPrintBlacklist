@@ -14,10 +14,11 @@ the blacklist rule group as part of your WebACL, before the expensive rule.
 module "ja3fingerprint_blacklist" {
   source = "psantus/ja3fingerprint-blacklist"
   
-  log_group_name = "/aws-waf-logs-myacl"
-  log_filter_pattern = "{ $.terminatingRuleId = \"AWS-AWSManagedRulesATPRuleSet\"}"
-  rule_group_scope = "REGIONAL"
-  rule_group_maxsize = 200
+  log_group_name             = "aws-waf-logs-myacl"
+  log_filter_pattern         = "{ $.terminatingRuleId = \"AWS-AWSManagedRulesATPRuleSet\"}"
+  rule_group_scope           = "REGIONAL"
+  lambda_concurrency         = 2
+  rule_group_maxsize         = 200
 }
 ```
 

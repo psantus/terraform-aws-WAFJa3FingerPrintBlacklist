@@ -23,17 +23,19 @@ data "archive_file" "python_lambda_package" {
 }
 
 resource "aws_lambda_function" "rule_group_maintainer" {
-  function_name    = var.lambda_name
-  filename         = data.archive_file.python_lambda_package.output_path
-  source_code_hash = data.archive_file.python_lambda_package.output_base64sha256
-  role             = aws_iam_role.lambda_execution_role.arn
-  runtime          = "python3.12"
-  handler          = "waf-log-to-waf-rule.lambda_handler"
-  timeout          = 60
+  function_name                  = var.lambda_name
+  filename                       = data.archive_file.python_lambda_package.output_path
+  source_code_hash               = data.archive_file.python_lambda_package.output_base64sha256
+  role                           = aws_iam_role.lambda_execution_role.arn
+  runtime                        = "python3.12"
+  handler                        = "waf-log-to-waf-rule.lambda_handler"
+  timeout                        = 60
+  reserved_concurrent_executions = var.lambda_concurrency
+
   environment {
     variables = {
-      RULE_GROUP_ARN = aws_wafv2_rule_group.rule_group.arn
-      RULE_GROUP_SCOPE = var.rule_group_scope
+      RULE_GROUP_ARN     = aws_wafv2_rule_group.rule_group.arn
+      RULE_GROUP_SCOPE   = var.rule_group_scope
       RULE_GROUP_MAXSIZE = var.rule_group_maxsize
     }
   }

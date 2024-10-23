@@ -6,32 +6,46 @@ This is particularly useful when your WAF ACL contains an "expensive rule", such
 Account Creation Fraud Prevention (ACFP). 
 
 Instead of relying solely on these rules, use the logs they generate to feed a Ja3 FingerPrint blacklist, and include 
-the blacklist rule group as part of your WebACL, before the expensive rule. 
+the blacklist rule group (ARN is provided as an output of this module) as part of your WebACL, before the expensive rule. 
+
+To do that we rely on a Step Function whose state machine is the following:
+
+![StepFunction state machine graph](./stepfunctions-graph.png)
 
 ## Usage
 
 ```hcl
 module "ja3fingerprint_blacklist" {
   source = "psantus/ja3fingerprint-blacklist"
-  
-  log_group_name             = "aws-waf-logs-myacl"
-  log_filter_pattern         = "{ $.terminatingRuleId = \"AWS-AWSManagedRulesATPRuleSet\"}"
-  rule_group_scope           = "REGIONAL"
-  lambda_concurrency         = 2
-  rule_group_maxsize         = 200
+
+  web_acl_name                = "myacl" // used to know which metric to use to trigger the StepFunction Workflow
+  web_acl_metric_name         = "metric-name" // used to know which metric to use to trigger the Stepfunction workflow. Probably [for rule in aws_wafv2_web_acl.acl.rule : rule.visibility_config[0].metric_name if rule.name == "METRIC NAME YOU PUR IN YOUR TF CONFIG"][0]
+  threshold_alarm             = 30 // As soon as this threshold is crossed, we'll trigger the workflow
+  threshold_per_ja3           = 10 // Ja3Finder uses this to block only Ja3FingerPrints that were blocked multiple times.
+  log_group_name              = "aws-waf-logs-myacl" // name of the log group which ja3Finder will query
+  lambda_concurrency          = 1 // Prevents 429s fur WAFv2 APIs. See WAF quotas for limit 
+  rule_group_scope            = "CLOUDFRONT"
+  rule_group_maxsize          = 30 // WAF capacity will be twice that amount. 
+  ja3_ban_duration_in_seconds = 3600 // How long before we unban Ja3FingerPrints
+  terminating_rule_id         = "AWS-AWSManagedRulesATPRuleSet" // Name if the expensive rule we want to protect with a RuleGroup
 }
 ```
 
 ## What this module creates
 
-* a CloudWatch Log filter forwards WAFv2 logs to a Lambda
-* the Lambda
-  * extracts unique Ja3FingerPrints from the logs
-  * adds a rule to a rule group, within the defined limit (since every rule will cost 2 WCUs).
+* An empty WAFv2 Rule Group
+* A Cloudwatch Alarm, the state of which changes when we cross the `threshold_alarm` threshold.
+* An Eventbridge rule that watches for this alarm and triggers a StepFunction workflow
+* A StepFunction workflow (see graph above) that will
+  * Wait until all logs are ingested
+  * Trigger the Ja3Finder Lambda function that queries CloudWatch Logs (using Log Insights) to identify Ja3FingerPrints to ban
+  * Trigger the Ja3RuleGroupUpdater Lambda function that will add (then, after the `ja3_ban_duration_in_seconds` delay, remove) a rule in the Rule Group
+* All required IAM roles with least privilege.
 
-## Deployment note
+## Deployment notes
 
-If the scope is CLOUDFRONT, then your provider should be in us-east-1 region.
+1. If the scope is CLOUDFRONT, then your provider should be in us-east-1 region.
+2. If you need to use multiple times, uses the `prefix` variable to avoid resource naming conflict
 
 ## Disclaimer
 

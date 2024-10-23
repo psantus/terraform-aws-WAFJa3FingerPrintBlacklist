@@ -1,24 +1,53 @@
-variable "log_filter_pattern" {
+variable "web_acl_name" {
   type        = string
-  description = "Log filter pattern, for instance \"{ $.terminatingRuleId = \"AWS-AWSManagedRulesATPRuleSet\"}\""
+  description = "Name of the WAF Web ACL"
+}
+
+variable "web_acl_metric_name" {
+  type        = string
+  description = "Name of the WAF Web ACL metric to watch"
 }
 
 variable "log_group_name" {
   type        = string
-  description = "The LogGroup name you want to extract logs from"
+  description = "Name of the Log Group we'll extract logs from"
   validation { # Starts with /aws-waf-logs-
     condition     = can(regex("^aws-waf-logs-", var.log_group_name))
     error_message = "The log_group_name must start with \"aws-waf-logs-\" since we consume WAF Logs."
   }
 }
 
-variable "lambda_name" {
+variable "terminating_rule_id" {
   type        = string
-  description = "The name of the Lambda function that will parse the logs and update the WAF rule"
-  default     = "ja3-fingerprints-blocklist-maintainer"
+  description = "The ID of the terminating rule"
+  default     = "AWS-AWSManagedRulesATPRuleSet"
 }
 
-variable "lambda_log_retention_in_days" {
+variable "threshold_per_ja3" {
+  type        = number
+  description = "How many times a given Ja3FingerPrint must have triggered the Terminating Rule"
+  default     = 10
+}
+
+variable "threshold_alarm" {
+  type        = number
+  description = "How many times the Terminating Rule should match to trigger workflow execution"
+  default     = 15
+}
+
+variable "ja3_ban_duration_in_seconds" {
+  type        = number
+  description = "Duration in seconds for which the Ja3 fingerprint will be banned"
+  default     = 3600
+}
+
+variable "prefix" {
+  type        = string
+  description = "Prefix for all resource names"
+  default     = "ja3"
+}
+
+variable "log_retention_in_days" {
   type        = number
   description = "The number of days to retain the Lambda log"
   default     = 30

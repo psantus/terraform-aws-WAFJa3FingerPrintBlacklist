@@ -26,7 +26,7 @@ def lambda_handler(event, context):
 
     rules = rule_group['RuleGroup']['Rules']
     existing_priorities = [rule['Priority'] for rule in rules]
-    existing_ja3_fingerprints = [rule['Statement']['ByteMatchStatement']['SearchString'].decode() for rule in rules]
+    existing_ja3_fingerprints = [rule['Statement']['AndStatement']['Statements'][0]['ByteMatchStatement']['SearchString'].decode() for rule in rules]
     added_fingerprints = []
     removed_rules = []
 
@@ -93,12 +93,12 @@ def lambda_handler(event, context):
                 rules.append(new_rule)
 
         # Keep only the last RULE_GROUP_MAXSIZE rules
-        removed_rules = [rule['Statement']['ByteMatchStatement']['SearchString'].decode() for rule in rules[:-int(RULE_GROUP_MAXSIZE)]]
+        removed_rules = [rule['Statement']['AndStatement']['Statements'][0]['ByteMatchStatement']['SearchString'].decode() for rule in rules[:-int(RULE_GROUP_MAXSIZE)]]
         rules = rules[-int(RULE_GROUP_MAXSIZE):]
 
     if action == 'REMOVE_FROM_BLACKLIST':
         removed_rules = ja3_fingerprints
-        rules = [rule for rule in rules if rule['Statement']['ByteMatchStatement']['SearchString'].decode() not in ja3_fingerprints]
+        rules = [rule for rule in rules if rule['Statement']['AndStatement']['Statements'][0]['ByteMatchStatement']['SearchString'].decode() not in ja3_fingerprints]
 
     # Reindex rules from 1
     for index, rule in enumerate(rules):

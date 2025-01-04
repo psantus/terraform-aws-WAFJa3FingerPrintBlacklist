@@ -244,11 +244,17 @@ resource "aws_cloudwatch_metric_alarm" "ja3_fingerprint_alarm" {
   treat_missing_data  = "notBreaching"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   datapoints_to_alarm = 1
-  dimensions = {
+  dimensions = var.rule_group_scope == "CLOUDFRONT" ? {
     WebACL = var.web_acl_name
     Rule   = var.web_acl_metric_name
+  } : {
+    WebACL = var.web_acl_name
+    Rule   = var.web_acl_metric_name
+    Region = data.aws_region.current.name
   }
 }
+
+data "aws_region" "current" {}
 
 ## 2. Alarm event to stepfunction using Eventbridge
 resource "aws_cloudwatch_event_rule" "ja3_fingerprint_event_rule" {

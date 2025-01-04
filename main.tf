@@ -37,7 +37,6 @@ resource "aws_lambda_function" "ja3_finder" {
   runtime                        = "python3.12"
   handler                        = "ja3Finder.lambda_handler"
   timeout                        = 240
-  reserved_concurrent_executions = var.lambda_concurrency
 
   environment {
     variables = {
@@ -62,7 +61,6 @@ resource "aws_lambda_function" "ja3_rulegroup_updater" {
   runtime                        = "python3.12"
   handler                        = "ja3RuleGroupUpdater.lambda_handler"
   timeout                        = 60
-  reserved_concurrent_executions = var.lambda_concurrency
 
   environment {
     variables = {

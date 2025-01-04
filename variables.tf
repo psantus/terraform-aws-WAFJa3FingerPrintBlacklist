@@ -97,9 +97,3 @@ variable "sampled_requests_enabled" {
   description = "Whether to enable sampled requests logging"
   default     = false
 }
-
-variable "lambda_concurrency" {
-  type        = number
-  description = "The amount of reserved concurrency for the Lambda function. If you don't set this you might hit throttling errors on WAF GetRuleGroup API "
-  default     = -1
-}

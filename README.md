@@ -23,7 +23,6 @@ module "ja3fingerprint_blacklist" {
   threshold_alarm             = 30 // As soon as this threshold is crossed, we'll trigger the workflow
   threshold_per_ja3           = 10 // Ja3Finder uses this to block only Ja3FingerPrints that were blocked multiple times.
   log_group_name              = "aws-waf-logs-myacl" // name of the log group which ja3Finder will query
-  lambda_concurrency          = 1 // Prevents 429s fur WAFv2 APIs. See WAF quotas for limit 
   rule_group_scope            = "CLOUDFRONT"
   rule_group_maxsize          = 30 // WAF consumed capacity will be 3x that amount. 
   ja3_ban_duration_in_seconds = 3600 // How long before we unban Ja3FingerPrints

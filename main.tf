@@ -41,6 +41,7 @@ resource "aws_lambda_function" "ja3_finder" {
 
   environment {
     variables = {
+      LOG_GROUP_NAME      = var.log_group_name
       TERMINATING_RULE_ID = var.terminating_rule_id
       THRESHOLD           = var.threshold_per_ja3
     }

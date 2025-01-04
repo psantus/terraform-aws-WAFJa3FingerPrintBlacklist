@@ -38,7 +38,7 @@ variable "threshold_alarm" {
 variable "ja3_ban_duration_in_seconds" {
   type        = number
   description = "Duration in seconds for which the Ja3 fingerprint will be banned"
-  default     = 3600
+  default     = 900
 }
 
 variable "prefix" {

@@ -69,6 +69,7 @@ resource "aws_lambda_function" "ja3_rulegroup_updater" {
       RULE_GROUP_ARN     = aws_wafv2_rule_group.rule_group.arn
       RULE_GROUP_SCOPE   = var.rule_group_scope
       RULE_GROUP_MAXSIZE = var.rule_group_maxsize
+      LABEL_TO_FILTER    = var.label_to_apply_rule_on
     }
   }
 }

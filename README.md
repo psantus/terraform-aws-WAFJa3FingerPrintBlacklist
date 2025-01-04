@@ -25,9 +25,10 @@ module "ja3fingerprint_blacklist" {
   log_group_name              = "aws-waf-logs-myacl" // name of the log group which ja3Finder will query
   lambda_concurrency          = 1 // Prevents 429s fur WAFv2 APIs. See WAF quotas for limit 
   rule_group_scope            = "CLOUDFRONT"
-  rule_group_maxsize          = 30 // WAF capacity will be twice that amount. 
+  rule_group_maxsize          = 30 // WAF consumed capacity will be 3x that amount. 
   ja3_ban_duration_in_seconds = 3600 // How long before we unban Ja3FingerPrints
-  terminating_rule_id         = "AWS-AWSManagedRulesATPRuleSet" // Name if the expensive rule we want to protect with a RuleGroup
+  terminating_rule_id         = "AWS-AWSManagedRulesATPRuleSet" // Name of the expensive rule we want to protect with a RuleGroup
+  label_to_apply_rule_on      = "apply-ja3-filtering" // Only apply Ja3Filtering on part of the web traffic, to limit false positive blast radius.
 }
 ```
 
@@ -36,10 +37,12 @@ module "ja3fingerprint_blacklist" {
 * An empty WAFv2 Rule Group
 * A Cloudwatch Alarm, the state of which changes when we cross the `threshold_alarm` threshold.
 * An Eventbridge rule that watches for this alarm and triggers a StepFunction workflow
+* A Ja3Finder Lambda function that queries CloudWatch Logs (using Log Insights) to identify Ja3FingerPrints to ban
+* A Ja3RuleGroupUpdater Lambda function that will add or remove a rule in the Rule Group
 * A StepFunction workflow (see graph above) that will
   * Wait until all logs are ingested
-  * Trigger the Ja3Finder Lambda function that queries CloudWatch Logs (using Log Insights) to identify Ja3FingerPrints to ban
-  * Trigger the Ja3RuleGroupUpdater Lambda function that will add (then, after the `ja3_ban_duration_in_seconds` delay, remove) a rule in the Rule Group
+  * Trigger the Ja3Finder Lambda function
+  * Trigger the Ja3RuleGroupUpdater function to add (then, after the `ja3_ban_duration_in_seconds` delay, trigger again to remove) rules to the block list.
 * All required IAM roles with least privilege.
 
 ## Deployment notes

@@ -62,7 +62,7 @@ variable "rule_group_name" {
 variable "rule_group_maxsize" {
   type        = number
   description = "The maximum number of Ja3FingerPrint rules that can be stored in the WAF rule group. Each rule will cost 2 WCU"
-  default     = 750 // 750 * 2 WCU = 1500 WCU, which is the maximum for a rule group
+  default     = 500 // 750 * 3 WCU = 1500 WCU, which is the maximum for a rule group
 }
 
 variable "rule_group_scope" {
@@ -72,6 +72,12 @@ variable "rule_group_scope" {
     condition     = contains(["REGIONAL", "CLOUDFRONT"], var.rule_group_scope)
     error_message = "Invalid value for rule_group_scope. Valid values are \"REGIONAL\" and \"CLOUDFRONT\"."
   }
+}
+
+variable "label_to_apply_rule_on" {
+  type        = string
+  description = "The generated rules will only apply on traffic labelled using this label (for instance your /login page). This is because Ja3FingerPrint is not very specific and blocking Ja3 can affect legitimate users."
+  default     = "apply-ja3-filtering"
 }
 
 variable "cloudwatch_metrics_enabled" {

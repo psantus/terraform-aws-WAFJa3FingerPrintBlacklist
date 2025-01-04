@@ -10,6 +10,7 @@ wafv2 = boto3.client('wafv2')
 RULE_GROUP_ARN = os.environ['RULE_GROUP_ARN']
 RULE_GROUP_SCOPE = os.environ['RULE_GROUP_SCOPE']
 RULE_GROUP_MAXSIZE = os.environ['RULE_GROUP_MAXSIZE']
+LABEL_TO_FILTER = os.environ['LABEL_TO_FILTER']
 rule_group_id = RULE_GROUP_ARN.split('/')[-1]
 
 def lambda_handler(event, context):
@@ -57,18 +58,30 @@ def lambda_handler(event, context):
                         "MetricName": rule_name
                     },
                     "Statement": {
-                        "ByteMatchStatement": {
-                            "FieldToMatch": {
-                                "JA3Fingerprint": {
-                                    "FallbackBehavior": "MATCH"
-                                }
-                            },
-                            "PositionalConstraint": "EXACTLY",
-                            "SearchString": ja3_fingerprint,
-                            "TextTransformations": [
+                        "AndStatement": {
+                            "Statements": [
                                 {
-                                    "Type": "NONE",
-                                    "Priority": 0
+                                    "ByteMatchStatement": {
+                                        "FieldToMatch": {
+                                            "JA3Fingerprint": {
+                                                "FallbackBehavior": "MATCH"
+                                            }
+                                        },
+                                        "PositionalConstraint": "EXACTLY",
+                                        "SearchString": ja3_fingerprint,
+                                        "TextTransformations": [
+                                            {
+                                                "Type": "NONE",
+                                                "Priority": 0
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "LabelMatchStatement": {
+                                        "Scope": "LABEL",
+                                        "Key": LABEL_TO_FILTER
+                                    }
                                 }
                             ]
                         }
